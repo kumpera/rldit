@@ -1,0 +1,19 @@
+{
+
+    "manifest_version": 2,
+    "name": "Rldit",
+    "version": "1.0",
+  
+    "description": "Personalize your Reddit homebase using RL.",
+  
+    "icons": {
+      "48": "icons/vw-icon.svg"
+    },
+  
+    "content_scripts": [
+      {
+        "matches": ["*://old.reddit.com/*"],
+        "js": ["rldit.js"]
+      }
+    ]
+  }
