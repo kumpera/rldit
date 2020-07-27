@@ -104,6 +104,44 @@ function produce_decision_json() {
     console.log(JSON.stringify(decision));
 };
 
+var Module = {
+    print: function(text) { console.log('stdout: ' + text) },
+    printErr: function(text) { console.log('stderr: ' + text) },
+    onRuntimeInitialized: function() {
+        console.log('vw module initialized!');
+        try {
+            let ex = Module.new_example_predict();
+            let ex_builder = new Module.example_predict_builder(ex, "test");
+            ex_builder.push_feature_string("test", 1.0);
 
-function rldit() {
-}; rldit();
+            let vw = new Module.vw_predict();
+            let action_list = new Module.action_list();
+
+            let res = vw.predict("test", null, action_list);
+            console.log(res);
+            let a = res.get_pdf();
+            for (var i = 0; i < a.size(); i++) {
+                    console.log("Vector Value: ", a.get(i));
+            }
+            console.log(res.get_ranking());
+        } catch(e) {
+            console.log('vw fail ' + e)
+        }
+    },
+    instantiateWasm: function(info, receiveInstance) {
+        var wasmModuleUrl = browser.extension.getURL('vwslim.wasm');
+        async function resolveModule() {
+            try {
+                let response = await fetch(wasmModuleUrl, { credentials: 'same-origin' });
+                let wasmModule = await WebAssembly.instantiateStreaming(response, info);
+                receiveInstance(wasmModule["instance"])
+            } catch(e) {
+                console.log('failed to fetch wasm module due to ' + e);
+            }
+        };
+
+        resolveModule();
+
+        return { };
+    }
+}
