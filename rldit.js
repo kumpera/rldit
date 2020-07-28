@@ -1,25 +1,22 @@
-
-
-// document.body.textContent = "";
-
-// var header = document.createElement('h1');
-// header.textContent = "This page has been eaten";
-// document.body.appendChild(header);
-
 function getPostList() {
     return Array.from(document.getElementById('siteTable').children).filter(x => x.classList.contains('thing'));
 }
 
-function move_stuff_around() {
+function promote_best_post(best_slot) {
     try {
-        console.log("RLDIT GO! / 2");
+        console.log(`RLDIT is going to promote slot ${best_slot}`);
+        if(best_slot == 0) {
+            console.log("best slot already to slot. bye");
+            return;
+        }
+
         let siteTable = document.getElementById('siteTable');
 
         let posts = getPostList();
         console.log(`found ${posts.length} posts`);
 
-        var tmp = posts[2];
-        posts[2] = posts[0];
+        var tmp = posts[best_slot];
+        posts[best_slot] = posts[0];
         posts[0] = tmp;
 
         const frag = document.createDocumentFragment();
@@ -121,6 +118,7 @@ async function loadSlimRuntime() {
 var Module = {
     print: function(text) { console.log('stdout: ' + text) },
     printErr: function(text) { console.log('stderr: ' + text) },
+    noInitialRun: true,
     onRuntimeInitialized: function() {
         console.log('vw module initialized!');
         _slimResolve(Module);
@@ -148,11 +146,10 @@ let _vwModelFile = null;
 function loadVWModel() {
     async function doLoad() {
         try {
-            console.log('--loading vw model')
             var vwModelUrl = browser.extension.getURL('sample.model');
             let response = await fetch(vwModelUrl, { credentials: 'same-origin' });
             let model = await response.arrayBuffer();
-            console.log('--vw model loaded ok');
+            console.log('vw model loaded');
             return model;
         } catch(e) {
             console.log('failed to fetch vw model due to ' + e);
@@ -177,6 +174,7 @@ function loadVwPredict() {
             var heapBytes = new Uint8Array(Module.HEAPU8.buffer, ptr, model.byteLength);
             heapBytes.set(new Uint8Array(model));
             let vw = new rt.vw_predict(ptr, model.byteLength);
+            console.log("vw model loaded");
             return vw;
         } catch(e) {
             console.log('vw fail ' + e)
@@ -204,7 +202,6 @@ function add_feature(ex_builder, name, value) {
 
 async function make_rl_decision() {
     const vw_predict = await loadVwPredict();
-    console.log('all good, time to decide stuff');
 
     let shared = Module.new_example();
     let builder = new Module.example_predict_builder(Module.get_inner_example_predict(shared), "context");
@@ -259,35 +256,12 @@ async function make_rl_decision() {
 
     let action_list = new Module.action_list();
     actions.forEach(a => action_list.add_action(a));
-    console.log(`deciding with ${actions.length} actions`)
 
     let guid = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-    console.log(`guid: ${guid}`);
     let prediction = vw_predict.predict(guid, shared, action_list);
-    console.log('decisions done');
 
-    let ranking = prediction.get_ranking();
-    let pdf = prediction.get_pdf();
-
-    r = ""
-    p = ""
-    for (var i = 0; i < pdf.size(); i++) {
-        r += ranking.get(i) + " "
-        p += pdf.get(i) + " "
-    }
-    console.log("ranking: " + r);
-    console.log("pdf: " + p);
-
-    console.log(posts.map(post => post.attributes["data-subreddit"].value))
-    console.log(posts[ranking.get(0)].attributes["data-subreddit"].value)
-    // ranking.delete();
-    // pdf.delete();
-    // action_list.delete();
-    // shared.delete();
-    // actions.forEach(a => a.delete());
-    // prediction.delete();
-
-    return "yay"
+    promote_best_post(prediction.get_ranking().get(0));
+    return "done";
 };
 
 make_rl_decision().then(r => {

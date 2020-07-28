@@ -13,12 +13,12 @@
     "content_scripts": [
       {
         "matches": ["*://old.reddit.com/*"],
-        "js": [ "rldit.js", "vwslim.js"]
+        "js": [ "rldit.js", "vw.js"]
       }
     ],
 
     "web_accessible_resources": [
-        "vwslim.wasm",
+        "vw.wasm",
         "sample.model"
       ]
   }
