@@ -1,0 +1,145 @@
+{
+    "shared": {
+        "context": {
+            "user": "kumpera",
+            "path": "home"
+        }
+    },
+    "actions": [
+        {
+            "meta": {
+                "subreddit": "InternetIsBeautiful"
+            }
+        },
+        {
+            "meta": {
+                "subreddit": "u_adobe"
+            }
+        },
+        {
+            "meta": {
+                "subreddit": "photoshopbattles"
+            }
+        },
+        {
+            "meta": {
+                "subreddit": "tifu"
+            }
+        },
+        {
+            "meta": {
+                "subreddit": "science"
+            }
+        },
+        {
+            "meta": {
+                "subreddit": "Fireteams"
+            }
+        },
+        {
+            "meta": {
+                "subreddit": "UpliftingNews"
+            }
+        },
+        {
+            "meta": {
+                "subreddit": "OldSchoolCool"
+            }
+        },
+        {
+            "meta": {
+                "subreddit": "dataisbeautiful"
+            }
+        },
+        {
+            "meta": {
+                "subreddit": "mildlyinteresting"
+            }
+        },
+        {
+            "meta": {
+                "subreddit": "Futurology"
+            }
+        },
+        {
+            "meta": {
+                "subreddit": "Showerthoughts"
+            }
+        },
+        {
+            "meta": {
+                "subreddit": "EarthPorn"
+            }
+        },
+        {
+            "meta": {
+                "subreddit": "WritingPrompts"
+            }
+        },
+        {
+            "meta": {
+                "subreddit": "GetMotivated"
+            }
+        },
+        {
+            "meta": {
+                "subreddit": "u_popdusteats"
+            }
+        },
+        {
+            "meta": {
+                "subreddit": "nosleep"
+            }
+        },
+        {
+            "meta": {
+                "subreddit": "TwoXChromosomes"
+            }
+        },
+        {
+            "meta": {
+                "subreddit": "mildlyinteresting"
+            }
+        },
+        {
+            "meta": {
+                "subreddit": "IAmA"
+            }
+        },
+        {
+            "meta": {
+                "subreddit": "listentothis"
+            }
+        },
+        {
+            "meta": {
+                "subreddit": "creepy"
+            }
+        },
+        {
+            "meta": {
+                "subreddit": "gifs"
+            }
+        },
+        {
+            "meta": {
+                "subreddit": "Showerthoughts"
+            }
+        },
+        {
+            "meta": {
+                "subreddit": "personalfinance"
+            }
+        },
+        {
+            "meta": {
+                "subreddit": "todayilearned"
+            }
+        },
+        {
+            "meta": {
+                "subreddit": "askscience"
+            }
+        }
+    ]
+}
