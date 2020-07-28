@@ -14,14 +14,14 @@ function move_stuff_around() {
     try {
         console.log("RLDIT GO! / 2");
         let siteTable = document.getElementById('siteTable');
-        
+
         let posts = getPostList();
         console.log(`found ${posts.length} posts`);
-        
+
         var tmp = posts[2];
         posts[2] = posts[0];
         posts[0] = tmp;
-        
+
         const frag = document.createDocumentFragment();
         var j = 0;
         var orig = Array.from(siteTable.children);
@@ -54,7 +54,7 @@ function produce_decision_json() {
         location = "home";
     else if(pathName.startsWith("/r/"))
         location = pathName.substring(3, pathName.length - 1);
-    
+
     let decision = {
         shared: {
             context: {}
@@ -126,7 +126,7 @@ var Module = {
         _slimResolve(Module);
     },
     instantiateWasm: function(info, receiveInstance) {
-        var wasmModuleUrl = browser.extension.getURL('vwslim.wasm');
+        var wasmModuleUrl = browser.extension.getURL('vw.wasm');
         async function resolveModule() {
             try {
                 let response = await fetch(wasmModuleUrl, { credentials: 'same-origin' });
@@ -173,17 +173,11 @@ function loadVwPredict() {
             let rt = await loadSlimRuntime();
 
             //FIXME use https://github.com/emscripten-core/emscripten/issues/5519 instead
-            let vw = new rt.vw_predict();
             var ptr = rt._malloc(model.byteLength);
             var heapBytes = new Uint8Array(Module.HEAPU8.buffer, ptr, model.byteLength);
             heapBytes.set(new Uint8Array(model));
-            let res =  vw.load_model(ptr, model.byteLength);
-
-            console.log('load model: ' + res);
-            if(res == 0)
-                return vw;
-            else
-                throw "failed to load vw model due to " + res;
+            let vw = new rt.vw_predict(ptr, model.byteLength);
+            return vw;
         } catch(e) {
             console.log('vw fail ' + e)
             throw e;
@@ -199,7 +193,7 @@ function loadVwPredict() {
 function add_feature(ex_builder, name, value) {
     // console.log(`${name}::${value}`);
     if(typeof value === "string" || value == null) {
-        if(value) 
+        if(value)
             value = value.replace(new RegExp('[^a-zA-Z0-9]', "gm"), '_');
         ex_builder.push_feature_string(name + "=" + value, 1.0);
     }
@@ -211,10 +205,10 @@ function add_feature(ex_builder, name, value) {
 async function make_rl_decision() {
     const vw_predict = await loadVwPredict();
     console.log('all good, time to decide stuff');
-    
-    let shared = Module.new_example_predict();
-    let builder = new Module.example_predict_builder(shared, "context");
-    
+
+    let shared = Module.new_example();
+    let builder = new Module.example_predict_builder(Module.get_inner_example_predict(shared), "context");
+
     var userSpan = document.querySelector('span.user');
     var user = userSpan ? userSpan.firstChild.text : null;
     add_feature(builder, "user", user);
@@ -234,8 +228,8 @@ async function make_rl_decision() {
     var posts = getPostList();
     for (var i = 0; i < posts.length; i++) {
         var post = posts[i];
-        let action = Module.new_example_predict();
-        let ac_builder = new Module.example_predict_builder(action, "meta");
+        let action = Module.new_example();
+        let ac_builder = new Module.example_predict_builder(Module.get_inner_example_predict(action), "meta");
 
         try {
             add_feature(ac_builder, 'subreddit', post.attributes["data-subreddit"].value);
@@ -267,9 +261,11 @@ async function make_rl_decision() {
     actions.forEach(a => action_list.add_action(a));
     console.log(`deciding with ${actions.length} actions`)
 
-    let prediction = vw_predict.predict("test_event_id", shared, action_list);
+    let guid = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    console.log(`guid: ${guid}`);
+    let prediction = vw_predict.predict(guid, shared, action_list);
     console.log('decisions done');
-    
+
     let ranking = prediction.get_ranking();
     let pdf = prediction.get_pdf();
 
@@ -282,6 +278,8 @@ async function make_rl_decision() {
     console.log("ranking: " + r);
     console.log("pdf: " + p);
 
+    console.log(posts.map(post => post.attributes["data-subreddit"].value))
+    console.log(posts[ranking.get(0)].attributes["data-subreddit"].value)
     // ranking.delete();
     // pdf.delete();
     // action_list.delete();
