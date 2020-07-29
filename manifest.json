@@ -9,11 +9,16 @@
     "icons": {
       "48": "icons/vw-icon.svg"
     },
+
+
+  "background": {
+    "scripts": ["rl-loop.js", "vw.js"]
+  },
   
     "content_scripts": [
       {
         "matches": ["*://old.reddit.com/*"],
-        "js": [ "rldit.js", "vw.js"]
+        "js": [ "rl-client.js" ]
       }
     ],
 
