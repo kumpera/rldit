@@ -46,7 +46,6 @@ function promote_best_post(best_slot) {
                 siteTable.appendChild(node);
             }
         }
-        console.log("DONE!")
     } catch(e) {
          console.log(e);
     }
@@ -113,7 +112,6 @@ function produce_decision_json() {
         context: decision
     });
     msg.then(m => {
-        console.log('a decision was made: ' + JSON.stringify(m));
         promote_best_post(m.action);
         __pageEventId = m.event_id;
     });
@@ -121,7 +119,6 @@ function produce_decision_json() {
 }
 
 if(pageSection != null) {
-    console.log('in a post listing page!!')
     produce_decision_json();
 
     function notifyExtension(e) {

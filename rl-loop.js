@@ -26,7 +26,7 @@ async function record_click(click_data)
         console.log('could not find event_id: ' + click_data.eventId);
         return;
     }
-    console.log('found an the event: ' + JSON.stringify(event));
+    // console.log('found an the event: ' + JSON.stringify(event));
 
     //figure out what happened
     let actions = event.context.actions;
@@ -34,16 +34,17 @@ async function record_click(click_data)
 
     if(!action) {
         console.log('could not find action_id ' + click_data.actionId);
+        return;
     }
 
-    console.log('action found ' + JSON.stringify(action));
+    // console.log('action found ' + JSON.stringify(action));
     var distance_weight = (actions.length - action.__ranking) / actions.length;
     var action_cost = distance_weight * (-1 + click_data.isLink ? -0.5 : 0);
 
     const vw_predict = await loadVwPredict();
 
     function learn_one(idx, cost, prob) {
-        console.log(`learning that action ${idx - 1} has cost ${cost}`)
+        // console.log(`learning that action ${idx - 1} has cost ${cost}`)
         const { shared, actions, action_list } = create_vw_examples(event.context);
 
         vw_predict.learn(event.event_id, shared, action_list, idx, cost, prob);
@@ -62,7 +63,7 @@ async function record_click(click_data)
         throw e
     }
 
-    console.log('learning done, move on');
+    // console.log('learning done, move on');
 }
 
 function add_feature(ex_builder, name, value) {
@@ -116,7 +117,7 @@ function create_vw_examples(request) {
 }
 
 async function make_rl_decision(request) {
-    console.log('make_rl_decision');
+    // console.log('make_rl_decision');
     if (!request || !(request.actions.length > 0)) {
         console.log("bad request data: " +JSON.stringify(request));
         throw new "bad request data";
@@ -163,7 +164,15 @@ async function make_rl_decision(request) {
         actions.forEach(a => Module.destroy_example(a));
         Module.destroy_example(shared)
 
-        console.log('decision result winner is ' + res.action)
+        best_a = -1;
+        best_p = 0;
+        for(var i  = 0; i < res.pdf.length; ++i) {
+            if(res.pdf[i] > best_p) {
+                best_p = res.pdf[i]
+                best_a = res.ranking[i]
+            }
+        }
+        console.log(`select action is ${res.action} with probability ${res.prob} best action ${best_a} with probability ${best_p}`)
         return res;
     }catch(e) {
         console.log('decision failed with ' + e);
@@ -172,7 +181,7 @@ async function make_rl_decision(request) {
 };
 
 function notify(request, sender, sendResponse) {
-    console.log('got msg ' + request.kind);
+    // console.log('got msg ' + request.kind);
     if(request.kind == 'decision') {
         return make_rl_decision(request.context);
     } else if(request.kind == 'click') {
@@ -199,8 +208,7 @@ var Module = {
     printErr: function(text) { console.log('stderr: ' + text) },
     noInitialRun: true,
     onRuntimeInitialized: function() {
-        console.log('vw module initialized!');
-
+        console.log('vw module initialized');
         _resolveRuntime(Module);
     },
     instantiateWasm: function(info, receiveInstance) {
@@ -224,19 +232,20 @@ var Module = {
 
 let _vwModelFile = null;
 function loadVWModel() {
-    async function doLoad() {
+    if(_vwModelFile)
+        return _vwModelFile;
+    _vwModelFile = new Promise(async (resolve,reject) => {
         try {
             var vwModelUrl = browser.extension.getURL('sample.model');
             let response = await fetch(vwModelUrl, { credentials: 'same-origin' });
             let model = await response.arrayBuffer();
             console.log('vw model loaded');
-            return model;
+            resolve(model);
         } catch(e) {
             console.log('failed to fetch vw model due to ' + e);
+            reject(e);
         }
-    }
-    if(!_vwModelFile)
-        _vwModelFile = doLoad();
+    });
     return _vwModelFile;
 }
 
@@ -244,11 +253,8 @@ let _vwPredict = null;
 function loadVwPredict() {
     async function doLoad() {
         try {
-            console.log('loadVwPredict')
             let model = await loadVWModel();
-            console.log('got model')
             await loadRuntime();
-            console.log('go runtime')
             
             //FIXME use https://github.com/emscripten-core/emscripten/issues/5519 instead
             // var ptr = Module._malloc(model.byteLength);
