@@ -1,3 +1,17 @@
+function getSection() {
+    const parts = window.location.pathname.split("/")
+    if(parts.length == 2 && parts[0] == "" && parts[1] == "")
+        return "/";
+    if(parts.length == 4 && parts[0] == "" && parts[1] == "r" && parts[3] == "")
+        return parts[2];
+    if(parts.length == 3 && parts[0] == "" && parts[2] == "")
+        return parts[2];
+    console.log(parts);
+    return null;
+}
+
+const pageSection = getSection();
+
 function getPostList() {
     return Array.from(document.getElementById('siteTable').children).filter(x => x.classList.contains('thing'));
 }
@@ -38,29 +52,21 @@ function promote_best_post(best_slot) {
     }
 };
 
-
 function produce_decision_json() {
     var userSpan = document.querySelector('span.user');
     var user = userSpan ? userSpan.firstChild.text : null;
 
-    var pathName = window.location.pathname;
-    var location = null;
-    if (pathName == "/")
-        location = "home";
-    else if(pathName.startsWith("/r/"))
-        location = pathName.substring(3, pathName.length - 1);
-
     let decision = {
         shared: {
-            context: {}
+            context: {
+                path: pageSection
+            }
         },
         actions: []
     };
 
     if(user)
         decision.shared.context.user = user;
-    if(pathName)
-        decision.shared.context.path = location;
 
     var posts = getPostList();
     for (var i = 0; i < posts.length; i++) {
@@ -113,17 +119,6 @@ function produce_decision_json() {
     });
 
 }
-
-function getSection() {
-    const parts = window.location.pathname.split("/")
-    if(parts.length == 2 && parts[0] == "" && parts[1] == "")
-        return "/";
-    if(parts.length == 4 && parts[0] == "" && parts[1] == "r" && parts[3] == "")
-        return parts[2];
-    return null;
-}
-
-const pageSection = getSection();
 
 if(pageSection != null) {
     console.log('in a post listing page!!')
